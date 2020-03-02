@@ -278,9 +278,11 @@ public class HttpContentCompressorTest {
     }
 
     @Test
-    public void testExecutor() throws Exception {
+    public void testExecutorPreserveOrdering() throws Exception {
         final EventLoopGroup compressorGroup = new DefaultEventLoopGroup(1);
         EventLoopGroup localGroup = new DefaultEventLoopGroup(1);
+        Channel server = null;
+        Channel client = null;
         try {
             ServerBootstrap bootstrap = new ServerBootstrap()
                 .channel(LocalServerChannel.class)
@@ -307,6 +309,7 @@ public class HttpContentCompressorTest {
                                         new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
                                             Unpooled.copiedBuffer("Hello, World", CharsetUtil.US_ASCII));
                                     ctx.writeAndFlush(res);
+                                    ReferenceCountUtil.release(msg);
                                     return;
                                 }
                                 super.channelRead(ctx, msg);
@@ -316,11 +319,11 @@ public class HttpContentCompressorTest {
             });
 
             LocalAddress address = new LocalAddress(UUID.randomUUID().toString());
-            ChannelFuture server = bootstrap.bind(address).sync();
+            server = bootstrap.bind(address).sync().channel();
 
             final BlockingQueue<HttpObject> responses = new LinkedBlockingQueue<HttpObject>();
 
-            Channel ch = new Bootstrap()
+            client = new Bootstrap()
                 .channel(LocalChannel.class)
                 .remoteAddress(address)
                 .group(localGroup)
@@ -331,7 +334,7 @@ public class HttpContentCompressorTest {
                         @Override
                         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                             if (msg instanceof HttpObject) {
-                                responses.put(ReferenceCountUtil.retain((HttpObject) msg));
+                                responses.put((HttpObject) msg);
                                 return;
                             }
                             super.channelRead(ctx, msg);
@@ -340,24 +343,33 @@ public class HttpContentCompressorTest {
                 }
             }).connect().sync().channel();
 
-            ch.writeAndFlush(newRequest());
+            client.writeAndFlush(newRequest()).sync();
 
             assertEncodedResponse((HttpResponse) responses.poll(1, TimeUnit.SECONDS));
             HttpContent c = (HttpContent) responses.poll(1, TimeUnit.SECONDS);
+            assertNotNull(c);
             assertThat(ByteBufUtil.hexDump(c.content()),
                 is("1f8b0800000000000000f248cdc9c9d75108cf2fca4901000000ffff"));
             c.release();
 
             c = (HttpContent) responses.poll(1, TimeUnit.SECONDS);
+            assertNotNull(c);
             assertThat(ByteBufUtil.hexDump(c.content()), is("0300c6865b260c000000"));
             c.release();
 
             LastHttpContent last = (LastHttpContent) responses.poll(1, TimeUnit.SECONDS);
+            assertNotNull(last);
             assertThat(last.content().readableBytes(), is(0));
             last.release();
 
-            assertThat(responses.poll(1, TimeUnit.SECONDS), is(nullValue()));
+            assertNull(responses.poll(1, TimeUnit.SECONDS));
         } finally {
+            if (client != null) {
+                client.close().sync();
+            }
+            if (server != null) {
+                server.close().sync();
+            }
             compressorGroup.shutdownGracefully();
             localGroup.shutdownGracefully();
         }
