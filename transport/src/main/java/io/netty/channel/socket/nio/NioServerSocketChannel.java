@@ -40,6 +40,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *
+ * 我们可以把 Netty Channel 和 Java 原生 Socket 对应，
+ * 而 Netty NIO Channel 和 Java 原生 NIO SocketChannel 对象。
+ *
+ *
  * A {@link io.netty.channel.socket.ServerSocketChannel} implementation which uses
  * NIO selector based implementation to accept new connections.
  */
@@ -47,28 +52,52 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
                              implements io.netty.channel.socket.ServerSocketChannel {
 
     private static final ChannelMetadata METADATA = new ChannelMetadata(false, 16);
+
+    // 静态属性，默认的 SelectorProvider 实现类。
     private static final SelectorProvider DEFAULT_SELECTOR_PROVIDER = SelectorProvider.provider();
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioServerSocketChannel.class);
 
+    /**
+     *
+     * 在构造方法中，调用 #newSocket(SelectorProvider provider) 方法，
+     * 创建 NIO 的 ServerSocketChannel 对象。
+     *
+     * @param provider
+     * @return
+     */
     private static ServerSocketChannel newSocket(SelectorProvider provider) {
         try {
             /**
+             *
              *  Use the {@link SelectorProvider} to open {@link SocketChannel} and so remove condition in
              *  {@link SelectorProvider#provider()} which is called by each ServerSocketChannel.open() otherwise.
              *
              *  See <a href="https://github.com/netty/netty/issues/2308">#2308</a>.
              */
-            return provider.openServerSocketChannel();
+            return provider.openServerSocketChannel(); // 和NIO的 ServerSocketChannel#open() 方法是一致的
         } catch (IOException e) {
             throw new ChannelException(
                     "Failed to open a server socket.", e);
         }
     }
 
+
+    /**
+     * config 属性，Channel 对应的配置对象。
+     * 每种 Channel 实现类，也会对应一个 ChannelConfig 实现类。
+     * 例如，NioServerSocketChannel 类，对应 ServerSocketChannelConfig 配置类。
+     *
+     * ChannelConfig 的官网英文描述： A set of configuration properties of a Channel.
+     *
+     */
     private final ServerSocketChannelConfig config;
 
     /**
+     *
+     * 在构造方法中，调用 newSocket(SelectorProvider provider) 方法，
+     * 创建 NIO 的 ServerSocketChannel 对象。
+     *
      * Create a new instance
      */
     public NioServerSocketChannel() {
@@ -83,10 +112,13 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     }
 
     /**
+     *
+     * 调用父 AbstractNioMessageChannel 的构造方法。
+     *
      * Create a new instance using the given {@link ServerSocketChannel}.
      */
     public NioServerSocketChannel(ServerSocketChannel channel) {
-        super(null, channel, SelectionKey.OP_ACCEPT);
+        super(null, channel, SelectionKey.OP_ACCEPT); // 传入的 SelectionKey 的值为 OP_ACCEPT
         config = new NioServerSocketChannelConfig(this, javaChannel().socket());
     }
 

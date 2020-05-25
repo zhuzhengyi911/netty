@@ -27,6 +27,13 @@ import java.net.SocketAddress;
 import java.util.Map;
 
 /**
+ *
+ * bootstrap 属性，对应的启动类对象。在每个方法中，我们可以看到，都是直接调用 boostrap 属性对应的方法，读取对应的配置。
+ *
+ *
+ * 每个 Config 类，对应一个 Bootstrap 类。
+ * ServerBootstrapConfig 和 BootstrapConfig 的实现代码，和 AbstractBootstrapConfig 基本一致，所以胖友自己去查看噢。
+ *
  * Exposes the configuration of an {@link AbstractBootstrap}.
  */
 public abstract class AbstractBootstrapConfig<B extends AbstractBootstrap<B, C>, C extends Channel> {

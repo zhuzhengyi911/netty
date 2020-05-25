@@ -37,6 +37,12 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 /**
+ * zzy：客户端启动器
+ *
+ * 通常使用 #connet(...) 方法连接到远程的主机和端口，作为一个 Netty TCP 客户端。
+ * 也可以通过 #bind(...) 方法绑定本地的一个端口，作为 UDP 的一端。
+ * 仅仅需要使用一个 EventLoopGroup
+ *
  * A {@link Bootstrap} that makes it easy to bootstrap a {@link Channel} to use
  * for clients.
  *

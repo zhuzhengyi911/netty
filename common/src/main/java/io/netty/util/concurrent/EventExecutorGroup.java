@@ -22,12 +22,19 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
+ *
+ * 实现 Iterable、ScheduledExecutorService 接口，
+ * EventExecutor ( 事件执行器 )的分组接口
+ *
  * The {@link EventExecutorGroup} is responsible for providing the {@link EventExecutor}'s to use
  * via its {@link #next()} method. Besides this, it is also responsible for handling their
  * life-cycle and allows shutting them down in a global fashion.
  *
  */
 public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<EventExecutor> {
+
+
+    // ========== 自定义接口 ==========
 
     /**
      * Returns {@code true} if and only if all {@link EventExecutor}s managed by this {@link EventExecutorGroup}
@@ -36,6 +43,8 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
     boolean isShuttingDown();
 
     /**
+     * 优雅关闭
+     *
      * Shortcut method for {@link #shutdownGracefully(long, long, TimeUnit)} with sensible default values.
      *
      * @return the {@link #terminationFuture()}
@@ -79,12 +88,18 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
     List<Runnable> shutdownNow();
 
     /**
+     * 选择一个 EventExecutor 对象
+     *
      * Returns one of the {@link EventExecutor}s managed by this {@link EventExecutorGroup}.
      */
     EventExecutor next();
 
+
+    // ========== 实现自 Iterable 接口 ==========
     @Override
     Iterator<EventExecutor> iterator();
+
+    // ========== 实现自 ExecutorService 接口 ==========
 
     @Override
     Future<?> submit(Runnable task);
@@ -94,6 +109,9 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
 
     @Override
     <T> Future<T> submit(Callable<T> task);
+
+
+    // ========== 实现自 ScheduledExecutorService 接口 ==========
 
     @Override
     ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);

@@ -29,6 +29,8 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 实现 EventExecutor 接口，继承 AbstractExecutorService 抽象类，EventExecutor 抽象类
+ *
  * Abstract base class for {@link EventExecutor} implementations.
  */
 public abstract class AbstractEventExecutor extends AbstractExecutorService implements EventExecutor {
@@ -37,7 +39,13 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
     static final long DEFAULT_SHUTDOWN_QUIET_PERIOD = 2;
     static final long DEFAULT_SHUTDOWN_TIMEOUT = 15;
 
+    /**
+     * 所属 EventExecutorGroup
+     */
     private final EventExecutorGroup parent;
+    /**
+     * EventExecutor 数组。只包含自己，用于 {@link #iterator()}
+     */
     private final Collection<EventExecutor> selfCollection = Collections.<EventExecutor>singleton(this);
 
     protected AbstractEventExecutor() {
@@ -48,16 +56,31 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
         this.parent = parent;
     }
 
+
+    /**
+     * 获得所属 EventExecutorGroup
+     *
+     * @return
+     */
     @Override
     public EventExecutorGroup parent() {
         return parent;
     }
 
+    /**
+     * 获得自己
+     * @return
+     */
     @Override
     public EventExecutor next() {
         return this;
     }
 
+    /**
+     * 判断当前线程是否在 EventLoop 线程中
+     *
+     * @return
+     */
     @Override
     public boolean inEventLoop() {
         return inEventLoop(Thread.currentThread());
@@ -90,6 +113,12 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
         return Collections.emptyList();
     }
 
+    /**
+     * 分别创建 DefaultPromise 和 DefaultProgressivePromise 对象
+     *
+     * @param <V>
+     * @return
+     */
     @Override
     public <V> Promise<V> newPromise() {
         return new DefaultPromise<V>(this);
@@ -100,6 +129,12 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
         return new DefaultProgressivePromise<V>(this);
     }
 
+    /**
+     * 分别创建成功结果和异常的 Future 对象
+     * @param result
+     * @param <V>
+     * @return
+     */
     @Override
     public <V> Future<V> newSucceededFuture(V result) {
         return new SucceededFuture<V>(this, result);
@@ -125,6 +160,14 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
         return (Future<T>) super.submit(task);
     }
 
+
+    /**
+     * 创建 PromiseTask 对象
+     * @param runnable
+     * @param value
+     * @param <T>
+     * @return
+     */
     @Override
     protected final <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
         return new PromiseTask<T>(this, runnable, value);

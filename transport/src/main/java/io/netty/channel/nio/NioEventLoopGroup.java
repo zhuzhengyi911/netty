@@ -37,6 +37,17 @@ import java.util.concurrent.ThreadFactory;
 public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 
     /**
+     * 构造方法比较多，主要是明确了父构造方法的 Object ... args 方法参数
+     *
+     * selectorProvider: 用于创建 Java NIO Selector 对象
+     *
+     * selectStrategyFactory : 选择策略工厂
+     *
+     * rejectedExecutionHandler : 拒绝执行处理器
+     */
+
+
+    /**
      * Create a new instance using the default number of threads, the default {@link ThreadFactory} and
      * the {@link SelectorProvider} which is returned by {@link SelectorProvider#provider()}.
      */
@@ -119,7 +130,18 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
                 rejectedExecutionHandler, taskQueueFactory);
     }
 
+
+
+
+
+
+
+
+
+
     /**
+     * 设置所有 EventLoop 的 IO 任务占用执行时间的比例
+     *
      * Sets the percentage of the desired amount of time spent for I/O in the child event loops.  The default value is
      * {@code 50}, which means the event loop will try to spend the same amount of time for I/O as for non-I/O tasks.
      */
@@ -130,6 +152,9 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
     }
 
     /**
+     *
+     * 重建所有 EventLoop 的 Selector 对象
+     *
      * Replaces the current {@link Selector}s of the child event loops with newly created {@link Selector}s to work
      * around the  infamous epoll 100% CPU bug.
      */
@@ -139,6 +164,15 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
         }
     }
 
+
+    /**
+     * 创建 NioEventLoop 对象
+     *
+     * @param executor
+     * @param args
+     * @return
+     * @throws Exception
+     */
     @Override
     protected EventLoop newChild(Executor executor, Object... args) throws Exception {
         EventLoopTaskQueueFactory queueFactory = args.length == 4 ? (EventLoopTaskQueueFactory) args[3] : null;

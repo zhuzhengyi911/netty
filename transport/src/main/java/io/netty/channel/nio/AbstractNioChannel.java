@@ -50,7 +50,16 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     private static final InternalLogger logger =
             InternalLoggerFactory.getInstance(AbstractNioChannel.class);
 
+
+    // ch 属性，Netty NIO Channel 对象，持有的 Java 原生 NIO 的 Channel 对象。
     private final SelectableChannel ch;
+    /**
+     * readInterestOp 属性
+     *
+     * AbstractNioMessageChannel 是 SelectionKey.OP_ACCEPT ，
+     * 而 AbstractNioByteChannel 是 SelectionKey.OP_READ 。
+     *
+     */
     protected final int readInterestOp;
     volatile SelectionKey selectionKey;
     boolean readPending;
